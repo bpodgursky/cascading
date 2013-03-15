@@ -268,7 +268,7 @@ public abstract class HadoopStepStats extends FlowStepStats
 
   protected synchronized Counters cachedCounters( boolean force )
     {
-    if( ( !force && isFinished() ) || timeouts >= TIMEOUT_MAX )
+    if( !force && ( isFinished() || timeouts >= TIMEOUT_MAX ) )
       return cachedCounters;
 
     RunningJob runningJob = getRunningJob();
