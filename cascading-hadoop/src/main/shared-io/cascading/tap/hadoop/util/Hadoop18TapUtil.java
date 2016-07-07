@@ -46,6 +46,8 @@ public class Hadoop18TapUtil
   /** The Hadoop temporary path used to prevent collisions */
   public static final String TEMPORARY_PATH = "_temporary";
 
+  public static final String DELETE_EXISTING_OUTPUT = "cascading.mapred.output.delete_existing";
+
   private static final Map<String, AtomicInteger> pathCounts = new HashMap<String, AtomicInteger>();
 
   /**
@@ -291,6 +293,10 @@ public class Hadoop18TapUtil
       Path finalOutputPath = getFinalPath( jobOutputDir, taskOutput, getTaskOutputPath( conf ) );
       if( !fs.rename( taskOutput, finalOutputPath ) )
         {
+
+        if( !conf.getBoolean(DELETE_EXISTING_OUTPUT, true) && fs.exists(finalOutputPath) )
+          throw new IOException( "Refusing to delete earlier output of task: " + taskId );
+
         if( !fs.delete( finalOutputPath, true ) )
           throw new IOException( "Failed to delete earlier output of task: " + taskId );
 
