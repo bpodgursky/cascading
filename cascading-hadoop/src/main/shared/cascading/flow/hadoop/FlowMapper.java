@@ -39,7 +39,7 @@ import cascading.flow.SliceCounters;
 import cascading.flow.hadoop.planner.HadoopFlowStepJob;
 import cascading.flow.hadoop.stream.HadoopMapStreamGraph;
 import cascading.flow.hadoop.util.HadoopUtil;
-import cascading.flow.hadoop.util.LocalStateCache;
+import cascading.flow.hadoop.util.StepStateCache;
 import cascading.flow.stream.Duct;
 import cascading.flow.stream.ElementDuct;
 import cascading.flow.stream.SourceStage;
@@ -81,12 +81,12 @@ public class FlowMapper implements MapRunnable
       String stepId = jobConf.get(FlowStep.CASCADING_FLOW_STEP_ID);
 
       if( stepState == null && isUberTaskEnabled(jobConf)) {
-        stepState = LocalStateCache.getCache().retrieveRemote(jobConf);
+        stepState = StepStateCache.retrieveRemoteState(jobConf);
       }
 
-      if( stepState == null ) {
+      if( stepState == null )
         stepState = readStateFromDistCache( jobConf, stepId);
-      }
+
 
       HadoopFlowStep step = deserializeBase64( stepState, jobConf, HadoopFlowStep.class );
       Tap source = step.getTapForID( step.getSources(), jobConf.get( "cascading.step.source" ) );

@@ -39,7 +39,7 @@ import cascading.flow.FlowException;
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.planner.HadoopFlowStepJob;
 import cascading.flow.hadoop.util.HadoopUtil;
-import cascading.flow.hadoop.util.LocalStateCache;
+import cascading.flow.hadoop.util.StepStateCache;
 import cascading.flow.planner.BaseFlowStep;
 import cascading.flow.planner.FlowStepJob;
 import cascading.flow.planner.PlatformInfo;
@@ -184,19 +184,15 @@ public class HadoopFlowStep extends BaseFlowStep<JobConf>
     if(isUberTaskEnabled(conf))
     {
       LOG.info("Putting state in local cache for ubertask mode");
-      LocalStateCache.getCache().cache(conf, stepState);
+      StepStateCache.cacheState(conf, stepState);
     }
 
     if( isHadoopLocalMode( conf ) || stepState.length() < maxSize ) // seems safe
-    {
-      LOG.info("Not writing step state to dist cache");
       conf.set("cascading.flow.step", stepState);
-    }
-    else {
-      LOG.info("Writing step state to dist cache");
+    else
       conf.set("cascading.flow.step.path", writeStateToDistCache(conf, getID(), stepState));
-    }
-    return conf;
+
+      return conf;
     }
 
   public boolean isHadoopLocalMode( JobConf conf )

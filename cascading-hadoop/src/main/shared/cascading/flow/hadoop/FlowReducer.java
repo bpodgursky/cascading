@@ -40,7 +40,7 @@ import cascading.flow.hadoop.planner.HadoopFlowStepJob;
 import cascading.flow.hadoop.stream.HadoopGroupGate;
 import cascading.flow.hadoop.stream.HadoopReduceStreamGraph;
 import cascading.flow.hadoop.util.HadoopUtil;
-import cascading.flow.hadoop.util.LocalStateCache;
+import cascading.flow.hadoop.util.StepStateCache;
 import cascading.flow.hadoop.util.TimedIterator;
 import cascading.flow.stream.Duct;
 import cascading.flow.stream.ElementDuct;
@@ -89,12 +89,12 @@ public class FlowReducer extends MapReduceBase implements Reducer
       String stepId = jobConf.get(FlowStep.CASCADING_FLOW_STEP_ID);
 
       if( stepState == null && isUberTaskEnabled(jobConf)) {
-        stepState = LocalStateCache.getCache().retrieveRemote(jobConf);
+        stepState = StepStateCache.retrieveRemoteState(jobConf);
       }
 
-      if( stepState == null ) {
+      if( stepState == null )
         stepState = readStateFromDistCache(jobConf, stepId);
-      }
+
 
       HadoopFlowStep step = deserializeBase64( stepState, jobConf, HadoopFlowStep.class );
 
