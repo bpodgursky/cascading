@@ -28,11 +28,18 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.OutputFormat;
+
 import cascading.CascadingException;
 import cascading.flow.FlowException;
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.planner.HadoopFlowStepJob;
 import cascading.flow.hadoop.util.HadoopUtil;
+import cascading.flow.hadoop.util.LocalStateCache;
 import cascading.flow.planner.BaseFlowStep;
 import cascading.flow.planner.FlowStepJob;
 import cascading.flow.planner.PlatformInfo;
@@ -59,12 +66,8 @@ import cascading.tuple.io.IndexTuple;
 import cascading.tuple.io.TuplePair;
 import cascading.util.Util;
 import cascading.util.Version;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputFormat;
 
+import static cascading.flow.hadoop.util.HadoopUtil.isUberTaskEnabled;
 import static cascading.flow.hadoop.util.HadoopUtil.serializeBase64;
 import static cascading.flow.hadoop.util.HadoopUtil.writeStateToDistCache;
 
@@ -177,11 +180,22 @@ public class HadoopFlowStep extends BaseFlowStep<JobConf>
 
     // hadoop 20.2 doesn't like dist cache when using local mode
     int maxSize = Short.MAX_VALUE;
-    if( isHadoopLocalMode( conf ) || stepState.length() < maxSize ) // seems safe
-      conf.set( "cascading.flow.step", stepState );
-    else
-      conf.set( "cascading.flow.step.path", writeStateToDistCache( conf, getID(), stepState ) );
 
+    if(isUberTaskEnabled(conf))
+    {
+      LOG.info("Putting state in local cache for ubertask mode");
+      LocalStateCache.getCache().cache(conf, stepState);
+    }
+
+    if( isHadoopLocalMode( conf ) || stepState.length() < maxSize ) // seems safe
+    {
+      LOG.info("Not writing step state to dist cache");
+      conf.set("cascading.flow.step", stepState);
+    }
+    else {
+      LOG.info("Writing step state to dist cache");
+      conf.set("cascading.flow.step.path", writeStateToDistCache(conf, getID(), stepState));
+    }
     return conf;
     }
 

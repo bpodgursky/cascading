@@ -23,18 +23,6 @@ package cascading.flow.hadoop;
 import java.io.IOException;
 import java.util.Iterator;
 
-import cascading.CascadingException;
-import cascading.flow.FlowException;
-import cascading.flow.FlowSession;
-import cascading.flow.FlowStep;
-import cascading.flow.SliceCounters;
-import cascading.flow.hadoop.planner.HadoopFlowStepJob;
-import cascading.flow.hadoop.stream.HadoopMapStreamGraph;
-import cascading.flow.hadoop.util.HadoopUtil;
-import cascading.flow.stream.Duct;
-import cascading.flow.stream.ElementDuct;
-import cascading.flow.stream.SourceStage;
-import cascading.tap.Tap;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapRunnable;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -43,7 +31,22 @@ import org.apache.hadoop.mapred.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cascading.CascadingException;
+import cascading.flow.FlowException;
+import cascading.flow.FlowSession;
+import cascading.flow.FlowStep;
+import cascading.flow.SliceCounters;
+import cascading.flow.hadoop.planner.HadoopFlowStepJob;
+import cascading.flow.hadoop.stream.HadoopMapStreamGraph;
+import cascading.flow.hadoop.util.HadoopUtil;
+import cascading.flow.hadoop.util.LocalStateCache;
+import cascading.flow.stream.Duct;
+import cascading.flow.stream.ElementDuct;
+import cascading.flow.stream.SourceStage;
+import cascading.tap.Tap;
+
 import static cascading.flow.hadoop.util.HadoopUtil.deserializeBase64;
+import static cascading.flow.hadoop.util.HadoopUtil.isUberTaskEnabled;
 import static cascading.flow.hadoop.util.HadoopUtil.readStateFromDistCache;
 
 /** Class FlowMapper is the Hadoop Mapper implementation. */
@@ -75,8 +78,15 @@ public class FlowMapper implements MapRunnable
 
       String stepState = jobConf.getRaw( "cascading.flow.step" );
 
-      if( stepState == null )
-        stepState = readStateFromDistCache( jobConf, jobConf.get( FlowStep.CASCADING_FLOW_STEP_ID ) );
+      String stepId = jobConf.get(FlowStep.CASCADING_FLOW_STEP_ID);
+
+      if( stepState == null && isUberTaskEnabled(jobConf)) {
+        stepState = LocalStateCache.getCache().retrieveRemote(jobConf);
+      }
+
+      if( stepState == null ) {
+        stepState = readStateFromDistCache( jobConf, stepId);
+      }
 
       HadoopFlowStep step = deserializeBase64( stepState, jobConf, HadoopFlowStep.class );
       Tap source = step.getTapForID( step.getSources(), jobConf.get( "cascading.step.source" ) );

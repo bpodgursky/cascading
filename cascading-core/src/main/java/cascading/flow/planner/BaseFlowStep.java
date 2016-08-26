@@ -36,6 +36,14 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.jgrapht.GraphPath;
+import org.jgrapht.Graphs;
+import org.jgrapht.alg.KShortestPaths;
+import org.jgrapht.graph.SimpleDirectedGraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cascading.flow.Flow;
 import cascading.flow.FlowElement;
 import cascading.flow.FlowException;
@@ -54,13 +62,6 @@ import cascading.property.ConfigDef;
 import cascading.stats.FlowStepStats;
 import cascading.tap.Tap;
 import cascading.util.Util;
-import org.jgrapht.GraphPath;
-import org.jgrapht.Graphs;
-import org.jgrapht.alg.KShortestPaths;
-import org.jgrapht.graph.SimpleDirectedGraph;
-import org.jgrapht.traverse.TopologicalOrderIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class FlowStep is an internal representation of a given Job to be executed on a remote cluster. During
@@ -75,7 +76,7 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseFlowStep<Config> implements Serializable, FlowStep<Config>
   {
   /** Field LOG */
-  private static final Logger LOG = LoggerFactory.getLogger( FlowStep.class );
+  protected static final Logger LOG = LoggerFactory.getLogger( FlowStep.class );
 
   /** Field flow */
   private transient Flow<Config> flow;

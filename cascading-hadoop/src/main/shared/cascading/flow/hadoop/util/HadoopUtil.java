@@ -34,6 +34,17 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cascading.flow.FlowException;
 import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.flow.planner.PlatformInfo;
@@ -46,16 +57,6 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
 import cascading.util.Util;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.conf.Configurable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -406,7 +407,13 @@ public class HadoopUtil
     return new Hfs( new TextLine(), path ).deleteResource( conf );
     }
 
-  public static String writeStateToDistCache( JobConf conf, String id, String stepState )
+
+  public static boolean isUberTaskEnabled(JobConf conf){
+    return conf.getBoolean("mapreduce.job.ubertask.enable", false);
+  }
+
+
+    public static String writeStateToDistCache( JobConf conf, String id, String stepState )
     {
     LOG.info( "writing step state to dist cache, too large for job conf, size: {}", stepState.length() );
 

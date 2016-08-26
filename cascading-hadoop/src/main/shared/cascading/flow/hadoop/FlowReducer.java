@@ -23,6 +23,14 @@ package cascading.flow.hadoop;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.Reporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cascading.CascadingException;
 import cascading.flow.FlowException;
 import cascading.flow.FlowSession;
@@ -32,20 +40,15 @@ import cascading.flow.hadoop.planner.HadoopFlowStepJob;
 import cascading.flow.hadoop.stream.HadoopGroupGate;
 import cascading.flow.hadoop.stream.HadoopReduceStreamGraph;
 import cascading.flow.hadoop.util.HadoopUtil;
+import cascading.flow.hadoop.util.LocalStateCache;
 import cascading.flow.hadoop.util.TimedIterator;
 import cascading.flow.stream.Duct;
 import cascading.flow.stream.ElementDuct;
 import cascading.tap.Tap;
 import cascading.tuple.Tuple;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static cascading.flow.hadoop.util.HadoopUtil.deserializeBase64;
+import static cascading.flow.hadoop.util.HadoopUtil.isUberTaskEnabled;
 import static cascading.flow.hadoop.util.HadoopUtil.readStateFromDistCache;
 
 /** Class FlowReducer is the Hadoop Reducer implementation. */
@@ -83,9 +86,15 @@ public class FlowReducer extends MapReduceBase implements Reducer
       timedIterator = new TimedIterator( currentProcess, SliceCounters.Read_Duration, SliceCounters.Tuples_Read );
 
       String stepState = jobConf.getRaw( "cascading.flow.step" );
+      String stepId = jobConf.get(FlowStep.CASCADING_FLOW_STEP_ID);
 
-      if( stepState == null )
-        stepState = readStateFromDistCache( jobConf, jobConf.get( FlowStep.CASCADING_FLOW_STEP_ID ) );
+      if( stepState == null && isUberTaskEnabled(jobConf)) {
+        stepState = LocalStateCache.getCache().retrieveRemote(jobConf);
+      }
+
+      if( stepState == null ) {
+        stepState = readStateFromDistCache(jobConf, stepId);
+      }
 
       HadoopFlowStep step = deserializeBase64( stepState, jobConf, HadoopFlowStep.class );
 
