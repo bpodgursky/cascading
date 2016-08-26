@@ -413,7 +413,7 @@ public class HadoopUtil
   }
 
 
-    public static String writeStateToDistCache( JobConf conf, String id, String stepState )
+  public static String writeStateToDistCache( JobConf conf, String id, String stepState )
     {
     LOG.info( "writing step state to dist cache, too large for job conf, size: {}", stepState.length() );
 

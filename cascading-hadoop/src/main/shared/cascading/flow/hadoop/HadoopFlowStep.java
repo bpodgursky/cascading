@@ -188,11 +188,11 @@ public class HadoopFlowStep extends BaseFlowStep<JobConf>
     }
 
     if( isHadoopLocalMode( conf ) || stepState.length() < maxSize ) // seems safe
-      conf.set("cascading.flow.step", stepState);
+      conf.set( "cascading.flow.step", stepState );
     else
-      conf.set("cascading.flow.step.path", writeStateToDistCache(conf, getID(), stepState));
+      conf.set( "cascading.flow.step.path", writeStateToDistCache(conf, getID(), stepState) );
 
-      return conf;
+    return conf;
     }
 
   public boolean isHadoopLocalMode( JobConf conf )

@@ -78,14 +78,12 @@ public class FlowMapper implements MapRunnable
 
       String stepState = jobConf.getRaw( "cascading.flow.step" );
 
-      String stepId = jobConf.get(FlowStep.CASCADING_FLOW_STEP_ID);
-
       if( stepState == null && isUberTaskEnabled(jobConf)) {
         stepState = StepStateCache.retrieveRemoteState(jobConf);
       }
 
       if( stepState == null )
-        stepState = readStateFromDistCache( jobConf, stepId);
+        stepState = readStateFromDistCache( jobConf, jobConf.get(FlowStep.CASCADING_FLOW_STEP_ID));
 
 
       HadoopFlowStep step = deserializeBase64( stepState, jobConf, HadoopFlowStep.class );
