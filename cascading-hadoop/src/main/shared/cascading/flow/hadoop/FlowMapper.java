@@ -23,14 +23,6 @@ package cascading.flow.hadoop;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapRunnable;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import cascading.CascadingException;
 import cascading.flow.FlowException;
 import cascading.flow.FlowSession;
@@ -44,6 +36,13 @@ import cascading.flow.stream.Duct;
 import cascading.flow.stream.ElementDuct;
 import cascading.flow.stream.SourceStage;
 import cascading.tap.Tap;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.MapRunnable;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.mapred.Reporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static cascading.flow.hadoop.util.HadoopUtil.deserializeBase64;
 import static cascading.flow.hadoop.util.HadoopUtil.isUberTaskEnabled;
